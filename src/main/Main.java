@@ -4,6 +4,8 @@ import java.io.File;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import domain.SAXHandler;
+
 public class Main {
 	public static void main(String[] args) {
 		try {
