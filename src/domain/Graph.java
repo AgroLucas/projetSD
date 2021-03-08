@@ -11,7 +11,7 @@ public class Graph {
 
   private Map<String, Country> cca3ToCountry = new HashMap<String, Country>();
   private Set<Country> countries = new HashSet<Country>();
-  private Map<Country, List<Border>> borders = new HashMap<Country, List<Border>>();
+  private Map<String, List<Border>> borders = new HashMap<String, List<Border>>(); //cca3 -> borders
 
   public Graph() {
     super ();
@@ -32,21 +32,15 @@ public class Graph {
    * @return true if the Border has been added without issue (false otherwise)
    */
   public boolean addBorder(Border b) {
-    Country c1 = b.getCountry1();
-    Country c2 = b.getCountry2();
-    if(!countries.contains(c1)) {
-      addCountry(c1);
-    }
-    if(!countries.contains(c2)) {
-      addCountry(c2);
-    }
+    String c1 = b.getCountry1();
+    String c2 = b.getCountry2();
     if(!borders.containsKey(c1)) {
       borders.put(c1, new ArrayList<Border>());
     }
     if(!borders.containsKey(c2)) {
       borders.put(c2, new ArrayList<Border>());
     }
-    if(!borders.get(c1).contains(b) || !borders.get(c2).contains(b)){
+    if(!borders.get(c1).contains(b) && !borders.get(c2).contains(b)){
       borders.get(c1).add(b);
       borders.get(c2).add(b);
       return true;

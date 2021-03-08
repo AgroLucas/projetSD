@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public class Border {
 
-  private String country1;
-  private String country2;
+  private String country1; //cca3
+  private String country2; //cca3
 
   public Border(String country1, String country2) {
     this.country1 = country1;
