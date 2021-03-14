@@ -10,13 +10,13 @@ import domain.SAXHandler;
 public class Main {
 	public static void main(String[] args) {
 		try {
-			File inputFile = new File("countries.xml");
+			File inputFile = new File("resources/countries.xml");
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
 			SAXHandler userhandler = new SAXHandler();
 			saxParser.parse(inputFile, userhandler);
 			Graph g = userhandler.getGraph();
-			g.calculerItineraireMinimisantNombreDeFrontieres("BEL", "IND", "output.xml");
+			//g.calculerItineraireMinimisantNombreDeFrontieres("BEL", "IND", "output.xml");
 			g.calculerItineraireMinimisantPopulationTotale("BEL", "IND", "output2.xml");
 		} catch (Exception e) {
 			e.printStackTrace();

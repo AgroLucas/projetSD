@@ -14,6 +14,15 @@ public class Country {
   private String region;
   private String subregion;
 
+
+  public Country(String cca3, String latlng, String name, int population, String region) {
+    this.cca3 = cca3;
+    this.latlng = latlng;
+    this.name = name;
+    this.population = population;
+    this.region = region;
+  }
+
   public Country(String cca3, String capital, String currency,
       List<String> languages, String latlng, String name, int population, String region,
       String subregion) {

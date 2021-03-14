@@ -25,10 +25,20 @@ public class SAXHandler extends DefaultHandler {
   @Override
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
     if (qName.equalsIgnoreCase("country")) {
-      List<String> languages = Arrays.asList(attributes.getValue("languages").split(",").clone());
-      Country country = new Country(attributes.getValue("cca3"), attributes.getValue("capital"), attributes.getValue("currency"),
-                                    languages, attributes.getValue("latlng"), attributes.getValue("name"), Integer.parseInt(attributes.getValue("population")),
-                                    attributes.getValue("region"), attributes.getValue("subregion"));
+      String cca3 = attributes.getValue("cca3");
+      String capital = attributes.getValue("capital");
+      String currency = attributes.getValue("currency");
+      String languages = attributes.getValue("languages");
+      String latlng = attributes.getValue("latlng");
+      String name = attributes.getValue("name");
+      int population = Integer.parseInt(attributes.getValue("population"));
+      String region = attributes.getValue("region");
+      String subregion = attributes.getValue("subregion");
+      Country country;
+      if (languages == null || currency == null || capital == null || subregion == null) // Antarctica ATA doesn't have all attributes
+        country = new Country(cca3, latlng, name, population, region);
+      else
+        country = new Country(cca3, capital, currency, Arrays.asList(languages.split(",").clone()), latlng, name, population, region, subregion);
       if (!this.graph.addCountry(country))
         throw new SAXException();
       this.currentCountry = country;
