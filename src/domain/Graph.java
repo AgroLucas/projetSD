@@ -35,6 +35,43 @@ public class Graph {
   }
 
   public void calculerItineraireMinimisantNombreDeFrontieres(String from, String to, String fileName) {
+    Set<String> visited = new HashSet<String>();      // already visited
+    Map<String, String> parents = new HashMap<>();    // way back
+    Deque<String> fifo = new ArrayDeque<String>();    // scanning order
+    String currentCountry = from; // current position
+
+    while(currentCountry!=null && !currentCountry.equals(to)) {
+      visited.add(currentCountry);
+      List<String> adjCountryLst = borders.get(currentCountry); // lst of adjacent countries
+
+      for (String c : adjCountryLst) {
+        if(!visited.contains(c)){
+          fifo.addLast(c);
+          parents.put(c, currentCountry);
+        }
+      }
+      currentCountry = fifo.peekFirst(); // null if empty
+    }
+
+    if(currentCountry == null) {
+      System.out.println("Aucun chemin trouvé");
+      return;
+    }
+
+    Deque<String> stack = new ArrayDeque<String>();
+    while(currentCountry != null){
+      stack.push(currentCountry);
+      currentCountry = parents.get(currentCountry);
+    }
+
+    List<String> path = new ArrayList<>();
+    while(stack.size() != 0) {
+      path.add(stack.pop());
+    }
+
+    for(String c : path) {
+      System.out.println(c + " ");
+    }
   }
 
   public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
