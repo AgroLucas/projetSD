@@ -1,10 +1,10 @@
 package domain;
 
-import java.util.Arrays;
-import java.util.List;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import java.util.Arrays;
 
 public class SAXHandler extends DefaultHandler {
 
@@ -49,8 +49,7 @@ public class SAXHandler extends DefaultHandler {
   @Override
   public void characters(char[] ch, int start, int length) throws SAXException {
     if (this.bBorder) {
-      if (!this.graph.addBorder(new Border(this.currentCountry.getCca3(), new String(ch, start, length))))
-        throw new SAXException();
+      this.graph.addBorder(this.currentCountry.getCca3(), new String(ch, start, length));
       this.bBorder = false;
     }
   }

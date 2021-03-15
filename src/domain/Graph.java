@@ -1,17 +1,12 @@
 package domain;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Graph {
 
   private Map<String, Country> cca3ToCountry = new HashMap<String, Country>();
   private Set<Country> countries = new HashSet<Country>();
-  private Map<String, List<Border>> borders = new HashMap<String, List<Border>>(); //cca3 -> borders
+  private Map<String, List<String>> borders = new HashMap<String, List<String>>(); //cca3 -> borders
 
   public Graph() {
     super ();
@@ -27,23 +22,13 @@ public class Graph {
     return countries.add(c);
   }
 
-  /**
-   * Adds a Border into the graph. (adds any unknown Country given as parameter too)
-   * @param b : Border object
-   * @return true if the Border has been added without issue (false otherwise)
-   */
-  public boolean addBorder(Border b) {
-    String c1 = b.getCountry1();
-    String c2 = b.getCountry2();
+  //TODO do 2 if
+  public boolean addBorder(String c1, String c2) {
     if (!borders.containsKey(c1)) {
-      borders.put(c1, new ArrayList<Border>());
+      borders.put(c1, new ArrayList<String>());
     }
-    if (!borders.containsKey(c2)) {
-      borders.put(c2, new ArrayList<Border>());
-    }
-    if (!borders.get(c1).contains(b) && !borders.get(c2).contains(b)) {
-      borders.get(c1).add(b);
-      borders.get(c2).add(b);
+    if (!borders.get(c1).contains(c2)) {
+      borders.get(c1).add(c2);
       return true;
     }
     return false;
@@ -71,7 +56,7 @@ public class Graph {
       int smallestNewPopulation = 0;
       Country nextCountry = null;
       currentPath.add(currentCountry);
-
+      System.out.println(currentCountry.getCca3());
       for (Border border: adjacentCountries) {
         //choisir le bon pays du border
         //TODO trouver comment supprimer ce if
@@ -80,6 +65,7 @@ public class Graph {
           adjacentCountry = cca3ToCountry.get(border.getCountry2());
         else
           adjacentCountry = cca3ToCountry.get(border.getCountry1());
+        //System.out.println(adjacentCountry.getCca3());
         int posAdjacentCountry = countryToInt.get(adjacentCountry);
         int newPopulation = finalTab[posCurrentCountry] + adjacentCountry.getPopulation();
         //verifier si le nbr de population de currentCountry + le nbr de population du bon pays < que le nbr de population déjà présent pour le bon pays
