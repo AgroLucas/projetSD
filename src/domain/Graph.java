@@ -75,53 +75,31 @@ public class Graph {
   }
 
   public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
-    Map<Country, Integer> finalTab = new HashMap<Country, Integer>();
-    Map<Country, Integer> provTab = new HashMap<Country, Integer>();
+    Map<Country, Long> finalTab = new HashMap<Country, Long>();
+    SortedMap<Country, Long> provTab = new TreeMap<Country, Long>(Comparator.comparing((country -> country.getPopulation())));
     //remplir tabs
     for (Country c: countries) {
-      finalTab.put(c, null);
-      provTab.put(c, null);
+      provTab.put(c, Long.MAX_VALUE);
     }
     Country currentCountry = cca3ToCountry.get(from);
-    finalTab.put(currentCountry, currentCountry.getPopulation());
-    provTab.put(currentCountry, currentCountry.getPopulation());
-    //rename
-    Set<Country> visitedCountries = new HashSet<Country>();
+    finalTab.put(currentCountry, (long) currentCountry.getPopulation());
+    provTab.put(currentCountry, (long) currentCountry.getPopulation());
 
     while (true) {
       System.out.println(currentCountry.getCca3());
       List<String> adjacentCountries = borders.get(currentCountry.getCca3());
-      int currentTotalPop = finalTab.get(currentCountry);
+      long currentTotalPop = finalTab.get(currentCountry);
       //to check which is the next country
       for (String c: adjacentCountries) {
         Country adjacentCountry = cca3ToCountry.get(c);
         //do not do anything if already added in final tab
-        if (finalTab.get(adjacentCountry) != null)
-          break;
-        Integer adjacentCountryPop = provTab.get(adjacentCountry);
-        if (adjacentCountryPop == null)
-          adjacentCountryPop = 0;
-        //change the adjacent country total pop
-        if (adjacentCountryPop == 0 || adjacentCountryPop > currentTotalPop + currentCountry.getPopulation()) {
-          provTab.put(adjacentCountry, currentTotalPop + currentCountry.getPopulation());
-          visitedCountries.add(adjacentCountry);
-        }
+        if (finalTab.containsKey(adjacentCountry))
+          continue;
+        long newAdjacentPopulation = currentTotalPop + adjacentCountry.getPopulation();
+        if (provTab.get(adjacentCountry) > newAdjacentPopulation)
+          provTab.put(adjacentCountry, newAdjacentPopulation);
       }
-      int smallestNewPopulation = 0;
-      Country nextCountry = null;
-      for (Country country : visitedCountries) {
-        int adjacentCountryPop = provTab.get(country);
-        if (smallestNewPopulation > adjacentCountryPop) {
-          smallestNewPopulation = currentTotalPop + adjacentCountryPop;
-          nextCountry = country;
-        }
-      }
-      visitedCountries.remove(nextCountry);
-      finalTab.put(nextCountry, smallestNewPopulation);
-      //si rien a été modifié ou si on a trouvé le plus petit poids pour le 'to' on arrete
-      if (nextCountry == null || nextCountry.equals(to))
-        break;
-      currentCountry = nextCountry;
+
     }
   }
 }
