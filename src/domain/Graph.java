@@ -38,19 +38,29 @@ public class Graph {
     Set<String> visited = new HashSet<String>();      // already visited
     Map<String, String> parents = new HashMap<>();    // way back
     Deque<String> fifo = new ArrayDeque<String>();    // scanning order
-    String currentCountry = from; // current position
+    String currentCountry = from;                     // current position
 
+    visited.add(currentCountry);
     while(currentCountry!=null && !currentCountry.equals(to)) {
-      visited.add(currentCountry);
       List<String> adjCountryLst = borders.get(currentCountry); // lst of adjacent countries
+      adjCountryLst.sort(String::compareTo);
 
       for (String c : adjCountryLst) {
         if(!visited.contains(c)){
+          visited.add(c);
           fifo.addLast(c);
           parents.put(c, currentCountry);
         }
       }
-      currentCountry = fifo.peekFirst(); // null if empty
+      if(visited.contains(to)){
+        currentCountry = to;
+      } else {
+        if(fifo.peekFirst() != null) {
+          currentCountry = fifo.removeFirst();
+        }else {
+          currentCountry = null;// null if empty fifo
+        }
+      }
     }
 
     if(currentCountry == null) {
@@ -58,18 +68,20 @@ public class Graph {
       return;
     }
 
+    // load path into stack
     Deque<String> stack = new ArrayDeque<String>();
     while(currentCountry != null){
       stack.push(currentCountry);
       currentCountry = parents.get(currentCountry);
     }
 
+    // transfer stack (reverse) into list -> good order
     List<String> path = new ArrayList<>();
     while(stack.size() != 0) {
       path.add(stack.pop());
     }
 
-    for(String c : path) {
+    for(String c : path) { //display path
       System.out.println(c + " ");
     }
   }
