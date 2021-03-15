@@ -38,52 +38,53 @@ public class Graph {
   }
 
   public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
-    Map<Country, Integer> countryToInt = new HashMap<Country,Integer>();
-    Map<Integer, Country> intToCountry = new HashMap<Integer,Country>();
-    int count = 0;
-    for (Country country: countries) {
-      countryToInt.put(country, count);
-      intToCountry.put(count++, country);
+    Map<Country, Integer> finalTab = new HashMap<Country, Integer>();
+    Map<Country, Integer> provTab = new HashMap<Country, Integer>();
+    //remplir tabs
+    for (Country c: countries) {
+      finalTab.put(c, null);
+      provTab.put(c, null);
     }
-    int[] finalTab = new int[countries.size()];
-    List<Country> basePath = new ArrayList<Country>();
-    List<Country> currentPath = new ArrayList<Country>();
     Country currentCountry = cca3ToCountry.get(from);
+    finalTab.put(currentCountry, currentCountry.getPopulation());
+    provTab.put(currentCountry, currentCountry.getPopulation());
+    //rename
+    Set<Country> visitedCountries = new HashSet<Country>();
 
     while (true) {
-      List<Border> adjacentCountries = borders.get(currentCountry.getCca3());
-      int posCurrentCountry = countryToInt.get(currentCountry);
-      int smallestNewPopulation = 0;
-      Country nextCountry = null;
-      currentPath.add(currentCountry);
       System.out.println(currentCountry.getCca3());
-      for (Border border: adjacentCountries) {
-        //choisir le bon pays du border
-        //TODO trouver comment supprimer ce if
-        Country adjacentCountry;
-        if (border.getCountry1().equals(currentCountry.getCca3()))
-          adjacentCountry = cca3ToCountry.get(border.getCountry2());
-        else
-          adjacentCountry = cca3ToCountry.get(border.getCountry1());
-        //System.out.println(adjacentCountry.getCca3());
-        int posAdjacentCountry = countryToInt.get(adjacentCountry);
-        int newPopulation = finalTab[posCurrentCountry] + adjacentCountry.getPopulation();
-        //verifier si le nbr de population de currentCountry + le nbr de population du bon pays < que le nbr de population déjà présent pour le bon pays
-        if (newPopulation > finalTab[posAdjacentCountry]) {
-          finalTab[posAdjacentCountry] = newPopulation;
-          if (smallestNewPopulation == 0 || smallestNewPopulation > newPopulation) {
-            smallestNewPopulation = newPopulation;
-            nextCountry = adjacentCountry;
-            if (adjacentCountry.getCca3().equals(to))
-              basePath = currentPath;
-          }
+      List<String> adjacentCountries = borders.get(currentCountry.getCca3());
+      int currentTotalPop = finalTab.get(currentCountry);
+      //to check which is the next country
+      for (String c: adjacentCountries) {
+        Country adjacentCountry = cca3ToCountry.get(c);
+        //do not do anything if already added in final tab
+        if (finalTab.get(adjacentCountry) != null)
+          break;
+        Integer adjacentCountryPop = provTab.get(adjacentCountry);
+        if (adjacentCountryPop == null)
+          adjacentCountryPop = 0;
+        //change the adjacent country total pop
+        if (adjacentCountryPop == 0 || adjacentCountryPop > currentTotalPop + currentCountry.getPopulation()) {
+          provTab.put(adjacentCountry, currentTotalPop + currentCountry.getPopulation());
+          visitedCountries.add(adjacentCountry);
         }
       }
+      int smallestNewPopulation = 0;
+      Country nextCountry = null;
+      for (Country country : visitedCountries) {
+        int adjacentCountryPop = provTab.get(country);
+        if (smallestNewPopulation > adjacentCountryPop) {
+          smallestNewPopulation = currentTotalPop + adjacentCountryPop;
+          nextCountry = country;
+        }
+      }
+      visitedCountries.remove(nextCountry);
+      finalTab.put(nextCountry, smallestNewPopulation);
       //si rien a été modifié ou si on a trouvé le plus petit poids pour le 'to' on arrete
       if (nextCountry == null || nextCountry.equals(to))
         break;
       currentCountry = nextCountry;
     }
-    System.out.println(finalTab.toString());
   }
 }
