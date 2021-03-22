@@ -28,208 +28,213 @@ import org.w3c.dom.Element;
 
 public class Graph {
 
-    public static final String PATH_RESOURCE = "resources/";
+  public static final String PATH_RESOURCE = "resources/";
 
-    private Map<String, Country> cca3ToCountry = new HashMap<String, Country>();
-    private Set<Country> countries = new HashSet<Country>();
-    private Map<String, List<String>> borders = new HashMap<String, List<String>>(); //cca3 -> borders
+  private Map<String, Country> cca3ToCountry = new HashMap<String, Country>();
+  private Set<Country> countries = new HashSet<Country>();
+  private Map<String, List<String>> borders = new HashMap<String, List<String>>(); //cca3 -> borders
 
-    public Graph() {
-        super();
+  public Graph() {
+    super();
+  }
+
+  /**
+   * Adds a Country into the graph.
+   *
+   * @param c : Country object
+   * @return true if the Country has been added without issue (false otherwise)
+   */
+  public boolean addCountry(Country c) {
+    cca3ToCountry.put(c.getCca3(), c);
+    return countries.add(c);
+  }
+
+  public boolean addBorder(String c1, String c2) {
+    if (!borders.containsKey(c1)) {
+      borders.put(c1, new ArrayList<String>());
+    }
+    if (!borders.get(c1).contains(c2)) {
+      borders.get(c1).add(c2);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Uses the BFS algorithm.
+   */
+  public void calculerItineraireMinimisantNombreDeFrontieres(String from, String to,
+      String fileName) {
+    Set<String> visited = new HashSet<String>();      // already visited
+    Map<String, String> parents = new HashMap<>();    // way back
+    Deque<String> fifo = new ArrayDeque<String>();    // scanning order
+    String currentCountry = from;                     // current position
+
+    visited.add(currentCountry);
+    while (currentCountry != null && !currentCountry.equals(to)) {
+      List<String> adjCountryLst = borders.get(currentCountry); // lst of adjacent countries
+      adjCountryLst.sort(String::compareTo);
+
+      for (String c : adjCountryLst) {
+        if (!visited.contains(c)) {
+          visited.add(c);
+          fifo.addLast(c);
+          parents.put(c, currentCountry);
+        }
+      }
+      if (visited.contains(to)) {
+        currentCountry = to;
+      } else {
+        if (fifo.peekFirst() != null) {
+          currentCountry = fifo.removeFirst();
+        } else {
+          currentCountry = null;// null if empty fifo
+        }
+      }
     }
 
-    /**
-     * Adds a Country into the graph.
-     *
-     * @param c : Country object
-     * @return true if the Country has been added without issue (false otherwise)
-     */
-    public boolean addCountry(Country c) {
-        cca3ToCountry.put(c.getCca3(), c);
-        return countries.add(c);
+    if (currentCountry == null) {
+      System.out.println("Aucun chemin trouvé");
+      return;
     }
 
-    public boolean addBorder(String c1, String c2) {
-        if (!borders.containsKey(c1)) {
-            borders.put(c1, new ArrayList<String>());
-        }
-        if (!borders.get(c1).contains(c2)) {
-            borders.get(c1).add(c2);
-            return true;
-        }
-        return false;
+    List<String> path = new ArrayList<>();
+    long totPop = findPath(parents, currentCountry, path);
+
+    writeOutput(path, fileName, totPop);
+  }
+
+  /**
+   * Use Dijkstra.
+   */
+  public void calculerItineraireMinimisantPopulationTotale(String from, String to,
+      String fileName) {
+    Map<Country, Long> finalTab = new HashMap<Country, Long>();
+    Map<String, String> previousCountries = new HashMap<String, String>();
+    SortedMap<Country, Long> provTab = new TreeMap<Country, Long>(
+        Comparator.comparing((country -> country.getPopulation())));
+
+    Country currentCountry = cca3ToCountry.get(from);
+
+    provTab.put(currentCountry, (long) currentCountry.getPopulation());
+    previousCountries.put(currentCountry.getCca3(), null);
+
+    while (!provTab.isEmpty() && !finalTab.containsKey(cca3ToCountry.get(to))) {
+      finalTab.put(currentCountry, provTab.remove(currentCountry));
+      updateProv(currentCountry, provTab, previousCountries, finalTab);
+      if (!provTab.isEmpty()) {
+        currentCountry = provTab.firstKey();
+      }
     }
 
-    /**
-     * Uses the BFS algorithm.
-     */
-    public void calculerItineraireMinimisantNombreDeFrontieres(String from, String to, String fileName) {
-        Set<String> visited = new HashSet<String>();      // already visited
-        Map<String, String> parents = new HashMap<>();    // way back
-        Deque<String> fifo = new ArrayDeque<String>();    // scanning order
-        String currentCountry = from;                     // current position
+    if (finalTab.get(cca3ToCountry.get(to)) == null) {
+      System.out.println("Aucun chemin trouvé");
+      return;
+    }
+    List<String> path = new ArrayList<>();
 
-        visited.add(currentCountry);
-        while (currentCountry != null && !currentCountry.equals(to)) {
-            List<String> adjCountryLst = borders.get(currentCountry); // lst of adjacent countries
-            adjCountryLst.sort(String::compareTo);
+    long totPop = findPath(previousCountries, to, path);
 
-            for (String c : adjCountryLst) {
-                if (!visited.contains(c)) {
-                    visited.add(c);
-                    fifo.addLast(c);
-                    parents.put(c, currentCountry);
-                }
-            }
-            if (visited.contains(to)) {
-                currentCountry = to;
-            } else {
-                if (fifo.peekFirst() != null) {
-                    currentCountry = fifo.removeFirst();
-                } else {
-                    currentCountry = null;// null if empty fifo
-                }
-            }
+    writeOutput(path, fileName, totPop);
+  }
+
+  /**
+   * Updates provTab & previousCountries with the borders of the current country.
+   */
+  private void updateProv(Country currentCountry, SortedMap<Country, Long> provTab,
+      Map<String, String> previousCountries, Map<Country, Long> finalTab) {
+    long baseWeight = finalTab.get(currentCountry);
+    for (String cca3 : borders.get(currentCountry.getCca3())) {
+      Country c = cca3ToCountry.get(cca3);
+      long weight = baseWeight + c.getPopulation();
+      if (!finalTab.containsKey(c)) {
+        if (!provTab.containsKey(c) || weight < provTab.get(c)) {
+          previousCountries.put(c.getCca3(), currentCountry.getCca3());
+          provTab.put(c, weight);
         }
+      }
+    }
+  }
 
-        if (currentCountry == null) {
-            System.out.println("Aucun chemin trouvé");
-            return;
-        }
-
-        List<String> path = new ArrayList<>();
-        long totPop = findPath(parents, currentCountry, path);
-
-        writeOutput(path, fileName, totPop);
+  /**
+   * Fills path with all the countries between the destination and the starting point.
+   *
+   * @param parents     map from a country to the previos one
+   * @param destination cca3
+   * @param path        an empty list of Strings
+   * @return the total population of the path
+   */
+  private long findPath(Map<String, String> parents, String destination, List<String> path) {
+    if (path == null || !path.isEmpty()) {
+      throw new IllegalArgumentException();
+    }
+    // load path into stack
+    Deque<String> stack = new ArrayDeque<String>();
+    long totPop = 0;
+    String currentCountry = destination;
+    while (currentCountry != null) {
+      totPop += cca3ToCountry.get(currentCountry).getPopulation();
+      stack.push(currentCountry);
+      currentCountry = parents.get(currentCountry);
     }
 
-    /**
-     * Use Dijkstra.
-     */
-    public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
-        Map<Country, Long> finalTab = new HashMap<Country, Long>();
-        Map<String, String> previousCountries = new HashMap<String, String>();
-        SortedMap<Country, Long> provTab = new TreeMap<Country, Long>(Comparator.comparing((country -> country.getPopulation())));
+    // pop stack into list -> good order
+    while (stack.size() != 0) {
+      path.add(stack.pop());
+    }
+    return totPop;
+  }
 
-        Country currentCountry = cca3ToCountry.get(from);
+  private void writeOutput(List<String> path, String fileName, long totPop) {
 
-        provTab.put(currentCountry, (long) currentCountry.getPopulation());
-        previousCountries.put(currentCountry.getCca3(), null);
+    try {
+      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder builder = factory.newDocumentBuilder();
+      Document document = builder.newDocument();
 
-        while (!provTab.isEmpty() && !finalTab.containsKey(cca3ToCountry.get(to))) {
-            finalTab.put(currentCountry, provTab.remove(currentCountry));
-            updateProv(currentCountry, provTab, previousCountries, finalTab);
-            if (!provTab.isEmpty()) {
-                currentCountry = provTab.firstKey();
-            }
-        }
+      Element rootElement = document.createElement("itineraire");
+      rootElement.setAttribute("arrive", path.get(path.size() - 1));
+      rootElement.setAttribute("depart", path.get(0));
+      rootElement.setAttribute("nbPays", "" + path.size());
+      rootElement.setAttribute("sommePopulation", "" + totPop);
+      document.appendChild(rootElement);
 
-        if (finalTab.get(cca3ToCountry.get(to)) == null) {
-          System.out.println("Aucun chemin trouvé");
-          return;
-        }
-        List<String> path = new ArrayList<>();
+      for (String countryCca3 : path) {
+        writeCountry(document, rootElement, countryCca3);
+      }
 
-        long totPop = findPath(previousCountries, to, path);
+      Transformer transformer = TransformerFactory.newInstance().newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
 
-        writeOutput(path, fileName, totPop);
+      DOMImplementation domImpl = document.getImplementation();
+      DocumentType docType = domImpl.createDocumentType("itineraire",
+          null, "itineraire.dtd");
+      transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
+
+      DOMSource source = new DOMSource(document);
+      StreamResult result = new StreamResult(new File(PATH_RESOURCE + fileName));
+      transformer.transform(source, result);
+
+
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
-    /**
-     * Updates provTab & previousCountries with the borders of the current country.
-     */
-    private void updateProv(Country currentCountry, SortedMap<Country, Long> provTab, Map<String, String> previousCountries, Map<Country, Long> finalTab) {
-        long baseWeight = finalTab.get(currentCountry);
-        for (String cca3 : borders.get(currentCountry.getCca3())) {
-            Country c = cca3ToCountry.get(cca3);
-            long weight = baseWeight + c.getPopulation();
-            if (!finalTab.containsKey(c)) {
-                if (!provTab.containsKey(c) || weight < provTab.get(c)) {
-                    previousCountries.put(c.getCca3(), currentCountry.getCca3());
-                    provTab.put(c, weight);
-                }
-            }
-        }
-    }
 
-    /**
-     *Fills path with all the countries between the destination and the starting point.
-     *
-     * @param parents map from a country to the previos one
-     * @param destination cca3
-     * @param path an empty list of Strings
-     * @return the total population of the path
-     */
-    private long findPath(Map<String, String> parents, String destination, List<String> path) {
-        if(path == null || !path.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-        // load path into stack
-        Deque<String> stack = new ArrayDeque<String>();
-        long totPop = 0;
-        String currentCountry = destination;
-        while (currentCountry != null) {
-            totPop += cca3ToCountry.get(currentCountry).getPopulation();
-            stack.push(currentCountry);
-            currentCountry = parents.get(currentCountry);
-        }
+  }
 
-        // pop stack into list -> good order
-        while (stack.size() != 0) {
-            path.add(stack.pop());
-        }
-        return totPop;
-    }
+  private void writeCountry(Document document, Element root, String countryCca3)
+      throws XMLStreamException {
+    Element c = document.createElement("pays");
 
-    private void writeOutput(List<String> path, String fileName, long totPop) {
+    Country countryObject = cca3ToCountry.get(countryCca3);
+    c.setAttribute("cca3", countryCca3);
+    c.setAttribute("nom", countryObject.getName());
+    c.setAttribute("population", "" + countryObject.getPopulation());
 
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.newDocument();
-
-            Element rootElement = document.createElement("itineraire");
-            rootElement.setAttribute("arrive", path.get(path.size() - 1));
-            rootElement.setAttribute("depart", path.get(0));
-            rootElement.setAttribute("nbPays", "" + path.size());
-            rootElement.setAttribute("sommePopulation", "" + totPop);
-            document.appendChild(rootElement);
-
-            for (String countryCca3 : path) {
-                writeCountry(document, rootElement, countryCca3);
-            }
-
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-
-            DOMImplementation domImpl = document.getImplementation();
-            DocumentType docType = domImpl.createDocumentType("itineraire",
-                null, "itineraire.dtd");
-            transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
-
-            DOMSource source = new DOMSource(document);
-            StreamResult result = new StreamResult(new File(PATH_RESOURCE + fileName));
-            transformer.transform(source, result);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-    }
-
-    private void writeCountry(Document document, Element root, String countryCca3) throws XMLStreamException {
-        Element c = document.createElement("pays");
-
-        Country countryObject = cca3ToCountry.get(countryCca3);
-        c.setAttribute("cca3", countryCca3);
-        c.setAttribute("nom", countryObject.getName());
-        c.setAttribute("population", "" + countryObject.getPopulation());
-
-        root.appendChild(c);
-    }
+    root.appendChild(c);
+  }
 
 
 }
