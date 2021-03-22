@@ -23,7 +23,6 @@ public class Graph {
         return countries.add(c);
     }
 
-    //TODO do 2 if
     public boolean addBorder(String c1, String c2) {
         if (!borders.containsKey(c1)) {
             borders.put(c1, new ArrayList<String>());
@@ -36,11 +35,7 @@ public class Graph {
     }
 
     /**
-     * Uses the BFS. algorithm
-     *
-     * @param from
-     * @param to
-     * @param fileName
+     * Uses the BFS algorithm.
      */
     public void calculerItineraireMinimisantNombreDeFrontieres(String from, String to, String fileName) {
         Set<String> visited = new HashSet<String>();      // already visited
@@ -92,6 +87,9 @@ public class Graph {
         writeOutput(path, fileName);
     }
 
+    /**
+     * Use Dijkstra.
+     */
     public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
         Map<Country, Long> finalTab = new HashMap<Country, Long>();
         Map<Country, List<String>> finalPathTab = new HashMap<Country, List<String>>();
@@ -120,6 +118,9 @@ public class Graph {
         writeOutput(finalPathTab.get(cca3ToCountry.get(to)), fileName);
     }
 
+    /**
+     * Updates prov(Path)Tab with the borders of the current country.
+     */
     private void updateProv(Country currentCountry, List<String> currentPath, SortedMap<Country, Long> provTab,
                             Map<Country, List<String>> provPathTab, Map<Country, Long> finalTab) {
         long baseWeight = finalTab.get(currentCountry);
