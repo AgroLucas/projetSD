@@ -122,8 +122,6 @@ public class Graph {
             stack.push(cca3);
             cca3 = previousCountries.get(cca3);
         }
-        writeOutput(finalPathTab.get(cca3ToCountry.get(to)), fileName, finalTab.get(cca3ToCountry.get(to)));
-    }
 
         // pop stack into list -> good order
         List<String> path = new ArrayList<>();
@@ -131,7 +129,7 @@ public class Graph {
             path.add(stack.pop());
         }
 
-        writeOutput(path, fileName);
+        writeOutput(path, fileName, finalTab.get(cca3ToCountry.get(to)));
     }
 
     /**
