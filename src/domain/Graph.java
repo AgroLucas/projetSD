@@ -89,51 +89,54 @@ public class Graph {
 
     /**
      * Use Dijkstra.
-     * TODO: store previous country instead of whole path (see BFS)
      */
     public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
         Map<Country, Long> finalTab = new HashMap<Country, Long>();
-        Map<Country, List<String>> finalPathTab = new HashMap<Country, List<String>>();
+        Map<String, String> previousCountries = new HashMap<String, String>();
         SortedMap<Country, Long> provTab = new TreeMap<Country, Long>(Comparator.comparing((country -> country.getPopulation())));
-        Map<Country, List<String>> provPathTab = new HashMap<Country, List<String>>();
 
         Country currentCountry = cca3ToCountry.get(from);
-        List<String> currentPath = new ArrayList<String>();
-
-        currentPath.add(currentCountry.getCca3());
-        provPathTab.put(currentCountry, new ArrayList<String>(currentPath));
 
         provTab.put(currentCountry, (long) currentCountry.getPopulation());
+        previousCountries.put(currentCountry.getCca3(), null);
 
         while (!provTab.isEmpty() && !finalTab.containsKey(cca3ToCountry.get(to))) {
             finalTab.put(currentCountry, provTab.remove(currentCountry));
-            finalPathTab.put(currentCountry, provPathTab.get(currentCountry));
-            updateProv(currentCountry, currentPath, provTab, provPathTab, finalTab);
+            updateProv(currentCountry, provTab, previousCountries, finalTab);
             if (!provTab.isEmpty()) {
                 currentCountry = provTab.firstKey();
-                currentPath = provPathTab.get(currentCountry);
             }
         }
-        System.out.println(to + " : " + finalTab.get(cca3ToCountry.get(to)));
 
-        writeOutput(finalPathTab.get(cca3ToCountry.get(to)), fileName);
+        String cca3 = to;
+
+        // load path into stack
+        Deque<String> stack = new ArrayDeque<String>();
+        while (cca3 != null) {
+            stack.push(cca3);
+            cca3 = previousCountries.get(cca3);
+        }
+
+        // pop stack into list -> good order
+        List<String> path = new ArrayList<>();
+        while (stack.size() != 0) {
+            path.add(stack.pop());
+        }
+
+        writeOutput(path, fileName);
     }
 
     /**
-     * Updates prov(Path)Tab with the borders of the current country.
+     * Updates provTab & previousCountries with the borders of the current country.
      */
-    private void updateProv(Country currentCountry, List<String> currentPath, SortedMap<Country, Long> provTab,
-                            Map<Country, List<String>> provPathTab, Map<Country, Long> finalTab) {
+    private void updateProv(Country currentCountry, SortedMap<Country, Long> provTab, Map<String, String> previousCountries, Map<Country, Long> finalTab) {
         long baseWeight = finalTab.get(currentCountry);
         for (String cca3 : borders.get(currentCountry.getCca3())) {
             Country c = cca3ToCountry.get(cca3);
             long weight = baseWeight + c.getPopulation();
             if (!finalTab.containsKey(c)) {
                 if (!provTab.containsKey(c) || weight < provTab.get(c)) {
-                    List<String> p = new ArrayList<String>(currentPath);
-                    p.add(c.getCca3());
-                    provPathTab.put(c, p);
-
+                    previousCountries.put(c.getCca3(), currentCountry.getCca3());
                     provTab.put(c, weight);
                 }
             }
