@@ -97,20 +97,8 @@ public class Graph {
             return;
         }
 
-        // load path into stack
-        Deque<String> stack = new ArrayDeque<String>();
-        long totPop = 0;
-        while (currentCountry != null) {
-            totPop += cca3ToCountry.get(currentCountry).getPopulation();
-            stack.push(currentCountry);
-            currentCountry = parents.get(currentCountry);
-        }
-
-        // pop stack into list -> good order
         List<String> path = new ArrayList<>();
-        while (stack.size() != 0) {
-            path.add(stack.pop());
-        }
+        long totPop = findPath(parents, currentCountry, path);
 
         writeOutput(path, fileName, totPop);
     }
@@ -140,22 +128,11 @@ public class Graph {
           System.out.println("Aucun chemin trouvé");
           return;
         }
-        String cca3 = to;
-
-        // load path into stack
-        Deque<String> stack = new ArrayDeque<String>();
-        while (cca3 != null) {
-            stack.push(cca3);
-            cca3 = previousCountries.get(cca3);
-        }
-
-        // pop stack into list -> good order
         List<String> path = new ArrayList<>();
-        while (stack.size() != 0) {
-            path.add(stack.pop());
-        }
 
-        writeOutput(path, fileName, finalTab.get(cca3ToCountry.get(to)));
+        long totPop = findPath(previousCountries, to, path);
+
+        writeOutput(path, fileName, totPop);
     }
 
     /**
@@ -175,6 +152,34 @@ public class Graph {
         }
     }
 
+    /**
+     *Fills path with all the countries between the destination and the starting point.
+     *
+     * @param parents map from a country to the previos one
+     * @param destination cca3
+     * @param path an empty list of Strings
+     * @return the total population of the path
+     */
+    private long findPath(Map<String, String> parents, String destination, List<String> path) {
+        if(path == null || !path.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        // load path into stack
+        Deque<String> stack = new ArrayDeque<String>();
+        long totPop = 0;
+        String currentCountry = destination;
+        while (currentCountry != null) {
+            totPop += cca3ToCountry.get(currentCountry).getPopulation();
+            stack.push(currentCountry);
+            currentCountry = parents.get(currentCountry);
+        }
+
+        // pop stack into list -> good order
+        while (stack.size() != 0) {
+            path.add(stack.pop());
+        }
+        return totPop;
+    }
 
     private void writeOutput(List<String> path, String fileName, long totPop) {
 
