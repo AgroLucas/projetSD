@@ -1,7 +1,17 @@
 package domain;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.Set;
+import java.util.List;
+import java.util.Deque;
+import java.util.Comparator;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLStreamException;
@@ -10,6 +20,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -159,50 +170,51 @@ public class Graph {
             }
         }
     }
+
     //https://www.ict.social/java/files/writing-xml-files-via-the-sax-approach-in-java
     private void writeOutput(List<String> path, String fileName, long totPop) {
 
-      try {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.newDocument();
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.newDocument();
 
-        Element rootElement = document.createElement("itineraire");
-        rootElement.setAttribute("arrive", path.get(path.size()-1));
-        rootElement.setAttribute("depart", path.get(0));
-        rootElement.setAttribute("nbPays", "" + path.size());
-        rootElement.setAttribute("sommePopulation", "" + totPop);
-        document.appendChild(rootElement);
+            Element rootElement = document.createElement("itineraire");
+            rootElement.setAttribute("arrive", path.get(path.size() - 1));
+            rootElement.setAttribute("depart", path.get(0));
+            rootElement.setAttribute("nbPays", "" + path.size());
+            rootElement.setAttribute("sommePopulation", "" + totPop);
+            document.appendChild(rootElement);
 
-        for (String countryCca3 : path) {
-          writeCountry(document, rootElement, countryCca3);
+            for (String countryCca3 : path) {
+                writeCountry(document, rootElement, countryCca3);
+            }
+
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            DOMSource source = new DOMSource(document);
+            StreamResult result = new StreamResult(new File(fileName));
+            transformer.transform(source, result);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-        DOMSource source = new DOMSource(document);
-        StreamResult result = new StreamResult(new File(fileName));
-        transformer.transform(source, result);
-
-
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
 
 
     }
 
-  private void writeCountry(Document document, Element root, String countryCca3) throws XMLStreamException {
-    Element c = document.createElement("pays");
+    private void writeCountry(Document document, Element root, String countryCca3) throws XMLStreamException {
+        Element c = document.createElement("pays");
 
-    Country countryObject = cca3ToCountry.get(countryCca3);
-    c.setAttribute("cca3", countryCca3);
-    c.setAttribute("nom", countryObject.getName());
-    c.setAttribute("population", "" + countryObject.getPopulation());
+        Country countryObject = cca3ToCountry.get(countryCca3);
+        c.setAttribute("cca3", countryCca3);
+        c.setAttribute("nom", countryObject.getName());
+        c.setAttribute("population", "" + countryObject.getPopulation());
 
-    root.appendChild(c);
-  }
+        root.appendChild(c);
+    }
 
 
 }
