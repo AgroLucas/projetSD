@@ -76,15 +76,13 @@ public class Graph {
       currentCountry = parents.get(currentCountry);
     }
 
-    // transfer stack (reverse) into list -> good order
+    // pop stack into list -> good order
     List<String> path = new ArrayList<>();
     while (stack.size() != 0) {
       path.add(stack.pop());
     }
 
-    for (String c : path) { //display path
-      System.out.println(c + " ");
-    }
+    writeOutput(path, fileName);
   }
 
   public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
@@ -113,6 +111,13 @@ public class Graph {
         if (!provTab.containsKey(c) || weight < provTab.get(c))
           provTab.put(c, weight);
       }
+    }
+  }
+
+  private void writeOutput(List<String> path, String fileName) {
+    //TODO: write into output file
+    for (String c : path) { //display path
+      System.out.println(c + " ");
     }
   }
 }
