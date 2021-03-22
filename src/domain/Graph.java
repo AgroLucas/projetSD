@@ -89,6 +89,7 @@ public class Graph {
 
     /**
      * Use Dijkstra.
+     * TODO: store previous country instead of whole path (see BFS)
      */
     public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
         Map<Country, Long> finalTab = new HashMap<Country, Long>();
