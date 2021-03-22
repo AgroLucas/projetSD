@@ -171,7 +171,7 @@ public class Graph {
         }
     }
 
-    //https://www.ict.social/java/files/writing-xml-files-via-the-sax-approach-in-java
+
     private void writeOutput(List<String> path, String fileName, long totPop) {
 
         try {
