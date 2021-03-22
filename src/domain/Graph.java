@@ -35,6 +35,12 @@ public class Graph {
     return false;
   }
 
+  /**
+   * Uses the BFS. algorithm
+   * @param from
+   * @param to
+   * @param fileName
+   */
   public void calculerItineraireMinimisantNombreDeFrontieres(String from, String to, String fileName) {
     Set<String> visited = new HashSet<String>();      // already visited
     Map<String, String> parents = new HashMap<>();    // way back
