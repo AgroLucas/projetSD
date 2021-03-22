@@ -1,0 +1,16 @@
+<!ELEMENT countries (country+)>
+
+  <!ELEMENT country (border*)>
+  <!ATTLIST country
+    capital CDATA #IMPLIED
+    cca3 ID #REQUIRED
+    currency CDATA #IMPLIED
+    languages CDATA #IMPLIED
+    latlng CDATA #REQUIRED
+    name CDATA #REQUIRED
+    population CDATA #REQUIRED
+    region CDATA #REQUIRED
+    subregion CDATA #IMPLIED
+  >
+
+  <!ELEMENT border (#PCDATA)>

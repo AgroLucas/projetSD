@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<countries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="countries.xsd">
+<!DOCTYPE countries SYSTEM "resources/countries.dtd">
+<countries>
 	<country capital="Oranjestad" cca3="ABW" currency="AWG"
 		languages="Dutch,Papiamento" latlng="12.5,-69.96666666" name="Aruba"
 		population="101484" region="Americas" subregion="Caribbean"/>
