@@ -1,10 +1,17 @@
 package domain;
 
-import java.io.FileWriter;
+import java.io.File;
 import java.util.*;
-import javax.xml.stream.XMLOutputFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class Graph {
 
@@ -151,51 +158,47 @@ public class Graph {
     //https://www.ict.social/java/files/writing-xml-files-via-the-sax-approach-in-java
     private void writeOutput(List<String> path, String fileName, long totPop) {
 
-      XMLStreamWriter xsw = null;
       try {
-        xsw = XMLOutputFactory.newInstance().createXMLStreamWriter(new FileWriter(fileName));
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.newDocument();
 
-        xsw.writeStartDocument();
-        xsw.writeStartElement("itineraire");
-        xsw.writeAttribute("arrive", path.get(path.size()-1));
-        xsw.writeAttribute("depart", path.get(0));
-        xsw.writeAttribute("nbPays", "" + path.size());
-        xsw.writeAttribute("sommePopulation", "" + totPop);
+        Element rootElement = document.createElement("itineraire");
+        rootElement.setAttribute("arrive", path.get(path.size()-1));
+        rootElement.setAttribute("depart", path.get(0));
+        rootElement.setAttribute("nbPays", "" + path.size());
+        rootElement.setAttribute("sommePopulation", "" + totPop);
+        document.appendChild(rootElement);
 
         for (String countryCca3 : path) {
-          writeCountry(xsw, countryCca3);
+          writeCountry(document, rootElement, countryCca3);
         }
 
-        xsw.writeEndElement();
-        xsw.writeEndDocument();
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-        xsw.flush();
-      }
-      catch (Exception e) {
-        System.err.println("Unable to write the file: " + e.getMessage());
-      }
-      finally {
-        try {
-          if (xsw != null) {
-            xsw.close();
-          }
-        }
-        catch (Exception e) {
-          System.err.println("Unable to close the file: " + e.getMessage());
-        }
+        DOMSource source = new DOMSource(document);
+        StreamResult result = new StreamResult(new File(fileName));
+        transformer.transform(source, result);
+
+
+      } catch (Exception e) {
+        e.printStackTrace();
       }
 
 
     }
 
-  private void writeCountry(XMLStreamWriter xsw, String countryCca3) throws XMLStreamException {
-    xsw.writeStartElement("pays");
+  private void writeCountry(Document document, Element root, String countryCca3) throws XMLStreamException {
+    Element c = document.createElement("pays");
 
-    Country c = cca3ToCountry.get(countryCca3);
-    xsw.writeAttribute("cca3", countryCca3);
-    xsw.writeAttribute("nom", c.getName());
-    xsw.writeAttribute("population", " " + c.getPopulation());
+    Country countryObject = cca3ToCountry.get(countryCca3);
+    c.setAttribute("cca3", countryCca3);
+    c.setAttribute("nom", countryObject.getName());
+    c.setAttribute("population", "" + countryObject.getPopulation());
 
-    xsw.writeEndElement();
+    root.appendChild(c);
   }
+
+
 }
