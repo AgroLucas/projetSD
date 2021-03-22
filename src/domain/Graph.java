@@ -21,10 +21,14 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 
 public class Graph {
+
+    public static final String PATH_RESOURCE = "resources/";
 
     private Map<String, Country> cca3ToCountry = new HashMap<String, Country>();
     private Set<Country> countries = new HashSet<Country>();
@@ -192,9 +196,15 @@ public class Graph {
 
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+
+            DOMImplementation domImpl = document.getImplementation();
+            DocumentType docType = domImpl.createDocumentType("itineraire",
+                null, "itineraire.dtd");
+            transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, docType.getSystemId());
 
             DOMSource source = new DOMSource(document);
-            StreamResult result = new StreamResult(new File(fileName));
+            StreamResult result = new StreamResult(new File(PATH_RESOURCE + fileName));
             transformer.transform(source, result);
 
 
