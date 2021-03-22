@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class Country {
+
   private String cca3;
   private String capital;
   private String currency;

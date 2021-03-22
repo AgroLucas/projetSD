@@ -11,6 +11,6 @@
     population CDATA #REQUIRED
     region CDATA #REQUIRED
     subregion CDATA #IMPLIED
-  >
+    >
 
   <!ELEMENT border (#PCDATA)>

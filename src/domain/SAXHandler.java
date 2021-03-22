@@ -23,7 +23,8 @@ public class SAXHandler extends DefaultHandler {
   }
 
   @Override
-  public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+  public void startElement(String uri, String localName, String qName, Attributes attributes)
+      throws SAXException {
     if (qName.equalsIgnoreCase("country")) {
       String cca3 = attributes.getValue("cca3");
       String capital = attributes.getValue("capital");
@@ -35,15 +36,20 @@ public class SAXHandler extends DefaultHandler {
       String region = attributes.getValue("region");
       String subregion = attributes.getValue("subregion");
       Country country;
-      if (languages == null || currency == null || capital == null || subregion == null) // Antarctica ATA doesn't have all attributes
+      if (languages == null || currency == null || capital == null
+          || subregion == null) {
         country = new Country(cca3, latlng, name, population, region);
-      else
-        country = new Country(cca3, capital, currency, Arrays.asList(languages.split(",").clone()), latlng, name, population, region, subregion);
-      if (!this.graph.addCountry(country))
+      } else {
+        country = new Country(cca3, capital, currency, Arrays.asList(languages.split(",")), latlng,
+            name, population, region, subregion);
+      }
+      if (!this.graph.addCountry(country)) {
         throw new SAXException();
+      }
       this.currentCountry = country;
-    } else if (qName.equalsIgnoreCase("border"))
+    } else if (qName.equalsIgnoreCase("border")) {
       this.bBorder = true;
+    }
   }
 
   @Override
