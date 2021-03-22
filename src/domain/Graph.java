@@ -1,6 +1,10 @@
 package domain;
 
+import java.io.FileWriter;
 import java.util.*;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 public class Graph {
 
@@ -78,7 +82,9 @@ public class Graph {
 
         // load path into stack
         Deque<String> stack = new ArrayDeque<String>();
+        long totPop = 0;
         while (currentCountry != null) {
+            totPop += cca3ToCountry.get(currentCountry).getPopulation();
             stack.push(currentCountry);
             currentCountry = parents.get(currentCountry);
         }
@@ -89,7 +95,7 @@ public class Graph {
             path.add(stack.pop());
         }
 
-        writeOutput(path, fileName);
+        writeOutput(path, fileName, totPop);
     }
 
     public void calculerItineraireMinimisantPopulationTotale(String from, String to, String fileName) {
@@ -115,9 +121,8 @@ public class Graph {
                 currentPath = provPathTab.get(currentCountry);
             }
         }
-        System.out.println(to + " : " + finalTab.get(cca3ToCountry.get(to)));
 
-        writeOutput(finalPathTab.get(cca3ToCountry.get(to)), fileName);
+        writeOutput(finalPathTab.get(cca3ToCountry.get(to)), fileName, finalTab.get(cca3ToCountry.get(to)));
     }
 
     private void updateProv(Country currentCountry, List<String> currentPath, SortedMap<Country, Long> provTab,
@@ -137,11 +142,54 @@ public class Graph {
             }
         }
     }
+    //https://www.ict.social/java/files/writing-xml-files-via-the-sax-approach-in-java
+    private void writeOutput(List<String> path, String fileName, long totPop) {
 
-    private void writeOutput(List<String> path, String fileName) {
-        //TODO: write into output file
-        for (String c : path) { //display path
-            System.out.println(c + " ");
+      XMLStreamWriter xsw = null;
+      try {
+        xsw = XMLOutputFactory.newInstance().createXMLStreamWriter(new FileWriter(fileName));
+
+        xsw.writeStartDocument();
+        xsw.writeStartElement("itineraire");
+        xsw.writeAttribute("arrive", path.get(path.size()-1));
+        xsw.writeAttribute("depart", path.get(0));
+        xsw.writeAttribute("nbPays", "" + path.size());
+        xsw.writeAttribute("sommePopulation", "" + totPop);
+
+        for (String countryCca3 : path) {
+          writeCountry(xsw, countryCca3);
         }
+
+        xsw.writeEndElement();
+        xsw.writeEndDocument();
+
+        xsw.flush();
+      }
+      catch (Exception e) {
+        System.err.println("Unable to write the file: " + e.getMessage());
+      }
+      finally {
+        try {
+          if (xsw != null) {
+            xsw.close();
+          }
+        }
+        catch (Exception e) {
+          System.err.println("Unable to close the file: " + e.getMessage());
+        }
+      }
+
+
     }
+
+  private void writeCountry(XMLStreamWriter xsw, String countryCca3) throws XMLStreamException {
+    xsw.writeStartElement("pays");
+
+    Country c = cca3ToCountry.get(countryCca3);
+    xsw.writeAttribute("cca3", countryCca3);
+    xsw.writeAttribute("nom", c.getName());
+    xsw.writeAttribute("population", " " + c.getPopulation());
+
+    xsw.writeEndElement();
+  }
 }
