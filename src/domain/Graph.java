@@ -121,6 +121,10 @@ public class Graph {
             }
         }
 
+        if (finalTab.get(cca3ToCountry.get(to)) == null) {
+          System.out.println("Aucun chemin trouvé");
+          return;
+        }
         String cca3 = to;
 
         // load path into stack
